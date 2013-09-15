@@ -2,7 +2,7 @@
  * call using ent(data, bins)
  *  Data    input image, must be of type uint8
  *  bins    number of bins to use (Note must be greater then the largest 
- *          value in A and B, there is no error checking)
+ *          value in A and B)
  */ 
 
 #include "mex.h"
@@ -49,8 +49,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     
     //get histogram
     for(x = 0; x < sizeX; x++){
-        for(y = 0; y < sizeY; y++){            
-            h[Data[y + x*sizeY]]++;
+        for(y = 0; y < sizeY; y++){
+            if((y + x*sizeY) < bins){
+                h[Data[y + x*sizeY]]++;
+            }
         }
     }
        

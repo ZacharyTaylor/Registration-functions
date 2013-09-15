@@ -4,7 +4,7 @@
  *  B       second input image, must be of uint8 and same size as A
  *  normal  0 for standrad mi, 1 for NMI
  *  bins    number of bins to use (Note must be greater then the largest 
- *          value in A and B, there is no error checking)
+ *          value in A and B)
  */ 
 
 #include "mex.h"
@@ -75,8 +75,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     
     //get joint histogram
     for(x = 0; x < sizeX; x++){
-        for(y = 0; y < sizeY; y++){            
-            h[B[y + x*sizeY] + bins*A[y + x*sizeY]]++;
+        for(y = 0; y < sizeY; y++){
+            if((B[y + x*sizeY] + bins*A[y + x*sizeY]) < bins*bins){
+                h[B[y + x*sizeY] + bins*A[y + x*sizeY]]++;
+            }
         }
     }
        
