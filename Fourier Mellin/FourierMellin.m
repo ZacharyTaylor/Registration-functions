@@ -7,6 +7,7 @@ barTot = 9; %number of elements in waitbar
 %% user set variables
 windSize = 50; %window size for blur
 sigma =  10; %gaussian blur sigma
+highPass = true;
 
 %% load images
 waitbar(bar/barTot,progress,'Getting Images'); bar = bar + 1;
@@ -41,19 +42,12 @@ waitbar(bar/barTot,progress,'getting scale and rotation'); bar = bar + 1;
 
 
 %% getting translation
-
-cpsMax = 0;
-sRMax = 0;
-
-%preprocessing
-waitbar(numPoints,progress,'Getting translation');
-
 %always scale down
 if(scale > 1)
     pA = A;
-    pB = imresize(imrotate(B, -theta(i), 'bilinear', 'loose'),(1/scale));
+    pB = imresize(imrotate(B, -theta, 'bilinear', 'loose'),(1/scale));
 else
-    pA = imresize(imrotate(A, theta(i), 'bilinear', 'loose'),scale);
+    pA = imresize(imrotate(A, theta, 'bilinear', 'loose'),scale);
     pB = B;
 end
 
@@ -68,13 +62,10 @@ pdm = exp(1i*(angle(crossA)-angle(crossB)));
 % turn into cross phase-correlation
 cps = real(ifft2(pdm));
 
-if(max(max(cps)) > cpsMax)
-    [x,y] = getTrans(cps);
-    cpsMax = max(max(cps));
-    cpsStore = cps;
-    sRMax = i;
-    fprintf('x %d  y %d  s %g  r %g\n',x,y,scale,theta);
-end
+[x,y] = getTrans(cps);
+cpsMax = max(max(cps));
+cpsStore = cps;
+fprintf('x %d  y %d  s %g  r %g\n',x,y,scale,theta);
 
 figure('Name','Cross power spectrum');
 surf(cpsStore);
@@ -83,7 +74,7 @@ surf(cpsStore);
 
 waitbar(bar/barTot,progress,'transforming images'); bar = bar + 1;
 
-if(scale(sRMax) > 1)
+if(scale > 1)
     base = A;
     move = zeros(size(A));
     if(y > size(A,1)/2)
@@ -92,7 +83,7 @@ if(scale(sRMax) > 1)
     if(x > size(A,2)/2)
         x = x-size(A,2);
     end
-    B2 = imresize(imrotate(B, -theta(sRMax), 'bilinear', 'loose'),(1/scale(sRMax)));
+    B2 = imresize(imrotate(B, -theta, 'bilinear', 'loose'),(1/scale));
     tform = [1,1,x,y,0,0,0];
     fastTform(double(B2), tform, move);
 else
@@ -104,7 +95,7 @@ else
     if(x > size(B,2)/2)
         x = x-size(B,2);
     end
-    A2 = imresize(imrotate(A, theta(sRMax), 'bilinear', 'loose'),(scale(sRMax)));
+    A2 = imresize(imrotate(A, theta, 'bilinear', 'loose'),(scale));
     tform = [1,1,x,y,0,0,0];
     fastTform(double(A2), tform, move);
 end
