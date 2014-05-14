@@ -42,14 +42,9 @@ waitbar(bar/barTot,progress,'getting scale and rotation'); bar = bar + 1;
 
 
 %% getting translation
-%always scale down
-if(scale > 1)
-    pA = A;
-    pB = imresize(imrotate(B, -theta, 'bilinear', 'loose'),(1/scale));
-else
-    pA = imresize(imrotate(A, theta, 'bilinear', 'loose'),scale);
-    pB = B;
-end
+
+pA = imresize(imrotate(A, theta, 'bilinear', 'loose'),scale);
+pB = B;
 
 [pA,pB] = padAndBlur(pA,pB,windSize,sigma);
 
@@ -74,34 +69,16 @@ surf(cpsStore);
 
 waitbar(bar/barTot,progress,'transforming images'); bar = bar + 1;
 
-if(scale > 1)
-    base = A;
-    move = zeros(size(A));
-    if(y > size(A,1)/2)
-        y = y-size(A,1);
-    end
-    if(x > size(A,2)/2)
-        x = x-size(A,2);
-    end
-    B2 = imresize(imrotate(B, -theta, 'bilinear', 'loose'),(1/scale));
-    tform = [1,1,x,y,0,0,0];
-    fastTform(double(B2), tform, move);
-else
-    base = B;
-    move = zeros(size(B));
-    if(y > size(B,1)/2)
-        y = y-size(B,1);
-    end
-    if(x > size(B,2)/2)
-        x = x-size(B,2);
-    end
-    A2 = imresize(imrotate(A, theta, 'bilinear', 'loose'),(scale));
-    tform = [1,1,x,y,0,0,0];
-    fastTform(double(A2), tform, move);
-end
+tform = [scale*cos(theta), scale*sin(theta), 0; -scale*sin(theta), scale*cos(theta), 0; x, y, 1];
+T = affine2d(tform);
 
-waitbar(bar/barTot,progress,'displaying images'); bar = bar + 1;
-figure, imshowpair(uint8(move),base);
+RA = imref2d(size(A));
+RB = imref2d(size(B));
+
+[A2,RA] = imwarp(A,RA,T);
+
+%waitbar(bar/barTot,progress,'displaying images'); bar = bar + 1;
+figure, imshowpair(A2,RA,B,RB);
 
 %% cleanup
 delete(progress);
